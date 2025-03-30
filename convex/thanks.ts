@@ -4,7 +4,13 @@ import { mutation, query } from "./_generated/server";
 export const getThanks = query({
   args: {},
   handler: async (ctx) => {
-    return await ctx.db.query("thanks").order("desc").collect();
+    const user = await ctx.auth.getUserIdentity();
+
+    return await ctx.db
+      .query("thanks")
+      .filter((q) => q.eq(q.field("userId"), user?.tokenIdentifier ?? ""))
+      .order("desc")
+      .collect();
   },
 });
 
@@ -16,10 +22,12 @@ export const createThanksItem = mutation({
   },
   handler: async (ctx, args) => {
     const { name, description, date } = args;
+    const user = await ctx.auth.getUserIdentity();
     await ctx.db.insert("thanks", {
       name,
       description,
       date,
+      userId: user?.tokenIdentifier ?? "",
     });
   },
 });

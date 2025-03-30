@@ -1,9 +1,9 @@
-import { Thanks } from "@/components/thanks/Thanks";
+import { AuthWrapper } from "@/components/auth/AuthWrapper";
 
 export default function Home() {
   return (
     <div className="">
-       <Thanks /> 
+      <AuthWrapper />
     </div>
   );
 }
