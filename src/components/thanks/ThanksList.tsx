@@ -2,13 +2,8 @@
 
 import { useQuery } from "convex/react";
 import { api } from "../../../convex/_generated/api";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
+import { Card, CardContent } from "../ui/card";
+import { ThanksItem } from "./ThanksItem";
 
 export const ThanksList = () => {
   const thanks = useQuery(api.thanks.getThanks, {});
@@ -23,26 +18,28 @@ export const ThanksList = () => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {thanks?.map((thank) => (
-            <Card key={thank._id}>
-              <CardHeader>
-                <CardTitle>{thank.name}</CardTitle>
-                <CardDescription>
-                  {new Date(thank.date).toLocaleDateString()} at{" "}
-                  {new Date(thank.date).toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <p>{thank.description || "No description provided."}</p>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        <>
+          {thanks ? (
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {thanks?.map((thank) => (
+                <ThanksItem key={thank._id} thank={thank} />
+              ))}
+            </div>
+          ) : (
+            <ThanksListSkeleton />
+          )}
+        </>
       )}
+    </div>
+  );
+};
+
+const ThanksListSkeleton = () => {
+  return (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {Array.from({ length: 6 }).map((_, index) => (
+        <Card key={index} className="animate-pulse bg-muted w-full h-32" />
+      ))}
     </div>
   );
 };
