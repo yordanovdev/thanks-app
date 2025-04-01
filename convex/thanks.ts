@@ -1,5 +1,7 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { action, mutation, query } from "./_generated/server";
+import { api } from "./_generated/api";
+import { generate_thanks_title } from "../services/openai/generate_thanks_title";
 
 export const getThanks = query({
   args: {},
@@ -14,20 +16,36 @@ export const getThanks = query({
   },
 });
 
+export const getThanksById = query({
+  args: {
+    id: v.id("thanks"),
+  },
+  handler: async (ctx, args) => {
+    const { id } = args;
+    const thanks = await ctx.db.get(id);
+    if (!thanks) {
+      throw new Error("Thanks item not found");
+    }
+    return thanks;
+  },
+});
+
 export const createThanksItem = mutation({
   args: {
-    name: v.string(),
     description: v.string(),
     date: v.string(),
   },
   handler: async (ctx, args) => {
-    const { name, description, date } = args;
+    const { description, date } = args;
     const user = await ctx.auth.getUserIdentity();
-    await ctx.db.insert("thanks", {
-      name,
+    const id = await ctx.db.insert("thanks", {
       description,
       date,
       userId: user?.tokenIdentifier ?? "",
+    });
+
+    await ctx.scheduler.runAfter(0, api.thanks.generate_title, {
+      thanksId: id,
     });
   },
 });
@@ -53,6 +71,29 @@ export const updateThanksItem = mutation({
     await ctx.db.patch(id, {
       name,
       description,
+    });
+  },
+});
+
+export const generate_title = action({
+  args: {
+    thanksId: v.id("thanks"),
+  },
+  handler: async (ctx, args) => {
+    const thanks = await ctx.runQuery(api.thanks.getThanksById, {
+      id: args.thanksId,
+    });
+
+    if (!thanks) {
+      throw new Error("Thanks item not found");
+    }
+
+    const generatedText = await generate_thanks_title(thanks.description);
+
+    await ctx.runMutation(api.thanks.updateThanksItem, {
+      id: args.thanksId,
+      name: generatedText,
+      description: thanks.description,
     });
   },
 });

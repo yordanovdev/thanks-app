@@ -20,15 +20,15 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutation } from "convex/react";
 import { api } from "../../../convex/_generated/api";
 import { PlusCircle } from "lucide-react";
 
 const formSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().optional(),
+  description: z.string().min(1, {
+    message: "Description is required",
+  }),
 });
 
 export default function CreateThanksForm() {
@@ -37,7 +37,6 @@ export default function CreateThanksForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      name: "",
       description: "",
     },
   });
@@ -45,7 +44,6 @@ export default function CreateThanksForm() {
   async function onSubmit(values: z.infer<typeof formSchema>) {
     await createThanks({
       date: new Date().toISOString(),
-      name: values.name,
       description: values.description ?? "",
     });
     toast.success("Thanks item created!");
@@ -64,25 +62,6 @@ export default function CreateThanksForm() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 w-full my-8">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name:</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="I am thankful for:"
-                      type="text"
-                      {...field}
-                    />
-                  </FormControl>
-
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="description"
