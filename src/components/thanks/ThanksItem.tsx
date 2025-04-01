@@ -95,7 +95,13 @@ export const ThanksItem = ({ thank }: ThanksItemProps) => {
                 )}
               />
             ) : (
-              <CardTitle className="w-10/12">{thank.name}</CardTitle>
+              <CardTitle className="w-10/12">
+                {!thank.name ? (
+                  <p className="opacity-80">Generating title...</p>
+                ) : (
+                  thank.name
+                )}
+              </CardTitle>
             )}
 
             {!editMode && (
